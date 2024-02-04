@@ -1,48 +1,54 @@
-// create web serer
+//create web server
 var express = require('express');
-var router = express.Router();
+var app = express();
+var fs = require("fs");
 
-// create connection to database
-var connection = require('../db/sql.js');
+//get comments
+app.get('/comments', function (req, res) {
+   fs.readFile( __dirname + "/" + "comments.json", 'utf8', function (err, data) {
+       console.log( data );
+       res.end( data );
+   });
+})
 
-/* GET comments listing. */
-router.get('/', function(req, res, next) {
-  connection.query('SELECT * FROM comments', function(err, rows, fields) {
-    if (err) throw err;
-    res.json(rows);
-  });
-});
+//post comments
+app.post('/comments', function (req, res) {
+   // First read existing users.
+   fs.readFile( __dirname + "/" + "comments.json", 'utf8', function (err, data) {
+       data = JSON.parse( data );
+       data["comment3"] = req.query.comment3;
+       console.log( data );
+       res.end( JSON.stringify(data));
+   });
+})
 
-// get comments by id
-router.get('/:id', function(req, res, next) {
-  connection.query('SELECT * FROM comments WHERE id = ?', req.params.id, function(err, rows, fields) {
-    if (err) throw err;
-    res.json(rows);
-  });
-});
+//delete comments
+app.delete('/comments', function (req, res) {
+   // First read existing users.
+   fs.readFile( __dirname + "/" + "comments.json", 'utf8', function (err, data) {
+       data = JSON.parse( data );
+       delete data["comment3"];
+       console.log( data );
+       res.end( JSON.stringify(data));
+   });
+})
 
-// add comment
-router.post('/', function(req, res, next) {
-  connection.query('INSERT INTO comments SET ?', req.body, function(err, result) {
-    if (err) throw err;
-    res.json(result);
-  });
-});
+//update comments
+app.put('/comments', function (req, res) {
+   // First read existing users.
+   fs.readFile( __dirname + "/" + "comments.json", 'utf8', function (err, data) {
+       data = JSON.parse( data );
+       data["comment3"] = req.query.comment3;
+       console.log( data );
+       res.end( JSON.stringify(data));
+   });
+})
 
-// update comment
-router.put('/:id', function(req, res, next) {
-  connection.query('UPDATE comments SET ? WHERE id = ?', [req.body, req.params.id], function(err, result) {
-    if (err) throw err;
-    res.json(result);
-  });
-});
+var server = app.listen(8081, function () {
 
-// delete comment
-router.delete('/:id', function(req, res, next) {
-  connection.query('DELETE FROM comments WHERE id = ?', req.params.id, function(err, result) {
-    if (err) throw err;
-    res.json(result);
-  });
-});
+  var host = server.address().address
+  var port = server.address().port
 
-module.exports = router;
+  console.log("Web server started at http://%s:%s", host, port)
+
+})
